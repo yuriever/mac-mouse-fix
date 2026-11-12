@@ -165,6 +165,9 @@ void commitConfig(void) {
     [self.shared loadOverridesForApp:@""];
     
     /// Notify other modules
+    NSURL *rulesURL = [Locator.configURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"button-rules.json"];
+    [ApplicationButtonRules.shared load:rulesURL];
+    [ApplicationButtonRules.shared activate:NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier];
     [Remap reload];
     [ScrollConfig reload];
 //    [Scroll decide];

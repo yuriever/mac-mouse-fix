@@ -555,7 +555,7 @@ import ReactiveSwift
             (someDeviceHasPointing      && someButtonModifiesPointing)              ||
             (someDeviceHasUsableButtons && someButtonModifiesButtonOnSomeDevice)
         
-        if someDeviceHasUsableButtons && (currentModificationModifiesButtonOnSomeDevice || buttonsAreUsedAsModifiers) {
+        if someDeviceHasUsableButtons && (currentModificationModifiesButtonOnSomeDevice || buttonsAreUsedAsModifiers || ApplicationButtonRules.shared.enabled) {
             
             ButtonInputReceiver.start()
         } else {

@@ -9,6 +9,8 @@
 
 #import "ButtonInputReceiver.h"
 #import "DeviceManager.h"
+#import "Remap.h"
+#import <AppKit/AppKit.h>
 #import <IOKit/hid/IOHIDManager.h>
 #import "ButtonTriggerGenerator.h"
 #import "Queue.h"
@@ -31,6 +33,13 @@ static CFMachPortRef _eventTap;
 
 + (void)load_Manual {
     registerInputCallback();
+    [NSWorkspace.sharedWorkspace.notificationCenter addObserverForName:NSWorkspaceDidActivateApplicationNotification
+        object:nil queue:NSOperationQueue.mainQueue usingBlock:^(NSNotification *note) {
+            NSRunningApplication *app = note.userInfo[NSWorkspaceApplicationKey];
+            if ([ApplicationButtonRules.shared activate:app.bundleIdentifier] && !Remap.addModeIsEnabled) {
+                [Remap reload];
+            }
+        }];
     _buttonParseBlacklist = @[@(1),@(2)]; /// Ignore inputs from left and right mouse buttons
 }
 
@@ -38,6 +47,7 @@ static CFMachPortRef _eventTap;
     CGEventTapEnable(_eventTap, true);
 }
 + (void)stop {
+    [ApplicationButtonRules.shared resetPresses];
     CGEventTapEnable(_eventTap, false);
 }
 + (BOOL)isRunning {
@@ -170,7 +180,16 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
     DDLogDebug("Input Receiver - Device for CG Button Input - iohidDevice: %@, device: %@", iohidDevice, device);
     
     /// Pass to buttonInput processor
-    MFEventPassThroughEvaluation eval = [Buttons handleInputWithDevice:device button:@(buttonNumber) downNotUp:mouseDown event:event];
+    ApplicationButtonRules *rules = ApplicationButtonRules.shared;
+    BOOL down = type == kCGEventOtherMouseDown;
+    if (down) [rules press:device.uniqueID.unsignedLongLongValue button:buttonNumber];
+    MFEventPassThroughEvaluation eval = kMFEventPassThroughApproval;
+    if (Remap.addModeIsEnabled || ![rules passesThrough:buttonNumber]) {
+        eval = [Buttons handleInputWithDevice:device button:@(buttonNumber) downNotUp:mouseDown event:event];
+    }
+    if (!down && [rules release:device.uniqueID.unsignedLongLongValue button:buttonNumber] && !Remap.addModeIsEnabled) {
+        [Remap reload];
+    }
     
     /// Set the `RECORDING_MODE` flag when you want to record video demos, so that cleanshot can properly highlight when a button or keyboard key is pressed
     

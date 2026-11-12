@@ -393,6 +393,7 @@
 		4FF8C89E28955DC4007EC31F /* CoolTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FF8C89D28955DC4007EC31F /* CoolTimer.swift */; };
 		4FF8C89F28955DC4007EC31F /* CoolTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FF8C89D28955DC4007EC31F /* CoolTimer.swift */; };
 		4FF8C8A32895AACB007EC31F /* Buttons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FF8C8A22895AACB007EC31F /* Buttons.swift */; };
+		EA7123CE0010000000000002 /* ApplicationButtonRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7123CE0010000000000001 /* ApplicationButtonRules.swift */; };
 		4FF93059288026FC0007CCA7 /* PolynomialCappedAccelerationCurve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FF93058288026FC0007CCA7 /* PolynomialCappedAccelerationCurve.swift */; };
 		4FFA4E3528B795F30062A1FE /* LicenseUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFA4E3428B795F30062A1FE /* LicenseUtility.swift */; };
 		4FFA4E3628B795F30062A1FE /* LicenseUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFA4E3428B795F30062A1FE /* LicenseUtility.swift */; };
@@ -2709,6 +2710,7 @@
 		4FF8C89D28955DC4007EC31F /* CoolTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoolTimer.swift; sourceTree = "<group>"; };
 		4FF8C8A028956DDD007EC31F /* ButtonModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonModifiers.swift; sourceTree = "<group>"; };
 		4FF8C8A22895AACB007EC31F /* Buttons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Buttons.swift; sourceTree = "<group>"; };
+		EA7123CE0010000000000001 /* ApplicationButtonRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationButtonRules.swift; sourceTree = "<group>"; };
 		4FF93058288026FC0007CCA7 /* PolynomialCappedAccelerationCurve.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolynomialCappedAccelerationCurve.swift; sourceTree = "<group>"; };
 		4FF9305D288060100007CCA7 /* PolyFit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PolyFit.cpp; sourceTree = "<group>"; };
 		4FF9305E288060100007CCA7 /* PolyFit.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = PolyFit.hpp; sourceTree = "<group>"; };
@@ -7874,6 +7876,7 @@
 				4FF6661B25F2C93A00689B77 /* ButtonInputReceiver.h */,
 				4FF6661E25F2C93A00689B77 /* ButtonInputReceiver.m */,
 				4FF8C8A22895AACB007EC31F /* Buttons.swift */,
+				EA7123CE0010000000000001 /* ApplicationButtonRules.swift */,
 				4FF8C89928955490007EC31F /* ClickCycle.swift */,
 				4FE479DF2933C87A00B75E9B /* ButtonModifiers.h */,
 				4FE479E02933C87A00B75E9B /* ButtonModifiers.m */,
@@ -9009,6 +9012,7 @@
 				4F1B41A62D4BACBA00026C94 /* NSData+Additions.m in Sources */,
 				4F9C9B6B268A2D6F0083DED0 /* CircularBuffer.m in Sources */,
 				4FF8C8A32895AACB007EC31F /* Buttons.swift in Sources */,
+				EA7123CE0010000000000002 /* ApplicationButtonRules.swift in Sources */,
 				4FB8B2982CCEBADA00A5A580 /* GetLicenseState.swift in Sources */,
 				4FF0255427B007FC00923107 /* ModifiedDragOutputFakeDrag.m in Sources */,
 				4F7F47C528A5A01600290BBD /* ReactiveConfig.swift in Sources */,
