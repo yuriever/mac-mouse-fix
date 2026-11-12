@@ -2,7 +2,7 @@ import Foundation
 
 let rules = ApplicationButtonRules()
 let source = URL(fileURLWithPath: CommandLine.arguments[1])
-let game = "com.kurogame.mingchao"
+let game = "org.example.native-input"
 let unrelated: NSDictionary = ["trigger": ["button": 6], "modifiers": [:], "effect": ["type": "smartZoom"]]
 let replaced: NSDictionary = ["trigger": "scrollTrigger", "modifiers": ["buttonModifiers": [["button": 3]]]]
 let base = [unrelated, replaced]
@@ -15,7 +15,7 @@ func effect(_ rows: [NSDictionary], button: Int) -> NSDictionary? {
     rows.first { ($0["trigger"] as? NSDictionary)?["button"] as? Int == button }?["effect"] as? NSDictionary
 }
 precondition(effect(desktop, button: 3)?["variant"] as? Int == 32)
-precondition(effect(desktop, button: 5)?["keycode"] as? Int == 101)
+precondition(effect(desktop, button: 5)?["keycode"] as? Int == 12)
 precondition(desktop.contains { $0["trigger"] as? String == "dragTrigger" })
 
 rules.press(1, button: 3)

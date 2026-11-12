@@ -2,9 +2,9 @@
   "defaults": {
     "3": "missionControl",
     "4": "threeFingerDrag",
-    "5": { "keyCode": 101, "flags": 8388864 }
+    "5": { "keyCode": 12, "flags": 0 }
   },
   "applications": {
-    "com.kurogame.mingchao": { "3": "passThrough" }
+    "org.example.native-input": { "3": "passThrough" }
   }
 }

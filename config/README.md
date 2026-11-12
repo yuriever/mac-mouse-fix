@@ -1,8 +1,8 @@
 # Application button rules
 
-This fork adds an optional `button-rules.json` alongside Mac Mouse Fix 3.1.0's `config.plist` in `~/Library/Application Support/com.nuebling.mac-mouse-fix/`. Copy the example from this directory, then restart the custom helper. The official 3.1.0 app does not read this file.
+This fork adds an optional `button-rules.json` alongside Mac Mouse Fix 3.1.0's `config.plist` in `~/Library/Application Support/com.nuebling.mac-mouse-fix/`. Create the file in that application support directory and restart the custom helper. The official 3.1.0 app does not read this file.
 
-The example maps middle click to Mission Control, button 4 plus drag to a three-finger swipe, and button 5 to F9. Wuthering Waves (`com.kurogame.mingchao`) receives the native middle-button press and release.
+The helper loads the rules at runtime. Editing them requires no rebuild.
 
 * `defaults` maps button numbers (3–32) to actions. Each listed button replaces existing click and modifier bindings that use that button. Other buttons retain their normal Mac Mouse Fix settings.
 * `applications` uses foreground application bundle identifiers. Omit a button to inherit its default. Set it to `"passThrough"` for native input or specify a replacement action.

@@ -19,7 +19,7 @@ jobs:
       - name: Test application button rules
         run: |
           xcrun swiftc Helper/Core/Buttons/ApplicationButtonRules.swift Tests/ApplicationButtonRules/main.swift -o "$RUNNER_TEMP/rule-test"
-          "$RUNNER_TEMP/rule-test" config/button-rules.json
+          "$RUNNER_TEMP/rule-test" Tests/ApplicationButtonRules/fixture.json
       - name: Build app and helper
         shell: bash
         run: |
