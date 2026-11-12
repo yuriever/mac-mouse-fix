@@ -206,9 +206,7 @@ static NSDictionary *_remaps;
             
         /// Convert remaps table to remaps dict
         
-        NSArray *remapsTable = [Config.shared.config objectForKey:kMFConfigKeyRemaps];
-        
-        for (NSDictionary *tableEntry in [ApplicationButtonRules.shared rows:remapsTable]) {
+        for (NSDictionary *tableEntry in ApplicationButtonRules.shared.rows) {
             /// Get modification precondition section of keypath
             NSDictionary *modificationPrecondition = tableEntry[kMFRemapsKeyModificationPrecondition];
             /// Get trigger section of keypath

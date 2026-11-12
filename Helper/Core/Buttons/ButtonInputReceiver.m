@@ -47,8 +47,8 @@ static CFMachPortRef _eventTap;
     CGEventTapEnable(_eventTap, true);
 }
 + (void)stop {
-    [ApplicationButtonRules.shared resetPresses];
     CGEventTapEnable(_eventTap, false);
+    if ([ApplicationButtonRules.shared resetPresses] && !Remap.addModeIsEnabled) [Remap reload];
 }
 + (BOOL)isRunning {
     /// Only used for debug inspection at the time of writing. Shouldn't need it for anything else.
@@ -97,7 +97,7 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
         
         DDLogDebug("ButtonInputReceiver eventTap was disabled by %@", type == kCGEventTapDisabledByTimeout ? @"timeout. Re-enabling." : @"user input.");
         
-        [ApplicationButtonRules.shared resetPresses];
+        if ([ApplicationButtonRules.shared resetPresses] && !Remap.addModeIsEnabled) [Remap reload];
         if (type == kCGEventTapDisabledByTimeout) {
             CGEventTapEnable(_eventTap, true);
         }

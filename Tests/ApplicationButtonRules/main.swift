@@ -1,53 +1,44 @@
 import Foundation
 
-let rules = ApplicationButtonRules()
-let source = URL(fileURLWithPath: CommandLine.arguments[1])
-let game = "org.example.native-input"
-let unrelated: NSDictionary = ["trigger": ["button": 6], "modifiers": [:], "effect": ["type": "smartZoom"]]
-let replaced: NSDictionary = ["trigger": "scrollTrigger", "modifiers": ["buttonModifiers": [["button": 3]]]]
-let base = [unrelated, replaced]
-precondition(rules.rows(base) == base)
-rules.load(source)
-precondition(rules.enabled)
-let desktop = rules.rows(base)
-precondition(desktop.count == 4 && desktop.contains(unrelated) && !desktop.contains(replaced))
-func effect(_ rows: [NSDictionary], button: Int) -> NSDictionary? {
-    rows.first { ($0["trigger"] as? NSDictionary)?["button"] as? Int == button }?["effect"] as? NSDictionary
+let middle: NSDictionary = ["trigger": ["button": 3, "duration": "click", "level": 1],
+                            "effect": ["type": "keyboardShortcut", "keycode": 103, "flags": 8388864],
+                            "modifiers": [:]]
+let drag: NSDictionary = ["trigger": "dragTrigger", "effect": ["modifiedDragType": "threeFingerSwipe"],
+                          "modifiers": ["buttonModifiers": [["button": 4, "level": 1]]]]
+let side: NSDictionary = ["trigger": ["button": 5, "duration": "click", "level": 1], "modifiers": [:]]
+let game = "example.game"
+func scoped(_ row: NSDictionary, _ mode: String, _ ids: [String]) -> NSDictionary {
+    let copy = row.mutableCopy() as! NSMutableDictionary
+    copy["applicationScope"] = ["mode": mode, "bundleIdentifiers": ids] as [String: Any]
+    return copy
 }
-precondition(effect(desktop, button: 3)?["variant"] as? Int == 32)
-precondition(effect(desktop, button: 5)?["keycode"] as? Int == 12)
-precondition(desktop.contains { $0["trigger"] as? String == "dragTrigger" })
 
+let rules = ApplicationButtonRules()
+let exceptGame = scoped(middle, "except", [game])
+let onlyGame = scoped(drag, "only", [game])
+rules.load([exceptGame, onlyGame, side], frontmost: "example.desktop")
+precondition(rules.enabled && rules.rows == [exceptGame, side])
+precondition(!rules.passesThrough(3) && rules.passesThrough(4))
 rules.press(1, button: 3)
-rules.press(2, button: 4)
-precondition(!rules.activate(game))
-precondition(!rules.release(1, button: 3))
-precondition(!rules.passesThrough(3))
-precondition(rules.release(2, button: 4))
-precondition(rules.passesThrough(3) && !rules.passesThrough(4))
-precondition(effect(rules.rows(base), button: 3) == nil)
-precondition(effect(rules.rows(base), button: 5) == effect(desktop, button: 5))
+rules.press(2, button: 5)
+precondition(!rules.activate(game) && !rules.release(1, button: 3))
+precondition(rules.disconnect(2) && rules.rows == [onlyGame, side])
+precondition(rules.passesThrough(3) && !rules.passesThrough(4) && !rules.passesThrough(5))
+
+// Hold a native button across focus and config changes until its native up.
 rules.press(1, button: 3)
-precondition(!rules.activate("com.apple.finder"))
-precondition(rules.passesThrough(3))
-precondition(rules.release(1, button: 3))
-precondition(rules.rows(base) == desktop)
+precondition(!rules.activate(nil))
+rules.load([middle, drag, side], frontmost: nil)
+precondition(rules.passesThrough(3) && rules.release(1, button: 3))
+precondition(!rules.enabled && rules.rows == [middle, drag, side])
 
-rules.press(2, button: 3)
-precondition(!rules.activate(game))
-precondition(rules.disconnect(2))
-precondition(rules.passesThrough(3))
-
-let temp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-try #"{"defaults":{"3":"missionControl"},"applications":{"com.example.editor":{"3":{"keyCode":6,"flags":0}}}}"#.write(to: temp, atomically: true, encoding: .utf8)
-defer { try? FileManager.default.removeItem(at: temp) }
-rules.load(temp)
-precondition(rules.activate("com.example.editor"))
-precondition(effect(rules.rows(base), button: 3)?["keycode"] as? Int == 6)
-try #"{"defaults":{"2":"passThrough"}}"#.write(to: temp, atomically: true, encoding: .utf8)
-rules.load(temp)
-precondition(effect(rules.rows(base), button: 3)?["keycode"] as? Int == 6)
-try FileManager.default.removeItem(at: temp)
-rules.load(temp)
-precondition(!rules.enabled && rules.rows(base) == base)
-print("Passed button rule resolution, native row generation, focus changes, and config reload checks.")
+// A scoped-out drag must never disable a separate active rule for that button.
+let drag3: NSDictionary = ["trigger": "dragTrigger", "modifiers": ["buttonModifiers": [["button": 3, "level": 1]]]]
+rules.load([exceptGame, drag3], frontmost: game)
+precondition(!rules.passesThrough(3) && rules.rows == [drag3])
+rules.load([scoped(side, "only", [])], frontmost: nil)
+precondition(rules.rows.isEmpty && rules.passesThrough(5))
+rules.press(1, button: 5)
+rules.load([side], frontmost: game)
+precondition(rules.resetPresses() && !rules.enabled && rules.rows == [side])
+print("Passed rule scopes, native clicks, modifiers, focus changes, reload and disconnect checks.")

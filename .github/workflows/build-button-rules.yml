@@ -1,7 +1,7 @@
 name: Build Mac Mouse Fix
 on:
   push:
-    branches: [codex/application-button-rules]
+    branches: [codex/mmf-app-scope]
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
       - name: Test application button rules
         run: |
           xcrun swiftc Helper/Core/Buttons/ApplicationButtonRules.swift Tests/ApplicationButtonRules/main.swift -o "$RUNNER_TEMP/rule-test"
-          "$RUNNER_TEMP/rule-test" Tests/ApplicationButtonRules/fixture.json
+          "$RUNNER_TEMP/rule-test"
       - name: Build app and helper
         shell: bash
         run: |
