@@ -1,0 +1,29 @@
+name: Build Mac Mouse Fix
+on:
+  push:
+    branches: [codex/application-button-rules]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Build app and helper
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild -project 'Mouse Fix.xcodeproj' -scheme 'App - Release' -configuration Release -derivedDataPath "$RUNNER_TEMP/mmf" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= build > "$RUNNER_TEMP/build.log" 2>&1 || { grep -E 'error:|fatal error|failed|No such file' "$RUNNER_TEMP/build.log" | tail -100; tail -40 "$RUNNER_TEMP/build.log"; exit 1; }
+          app="$RUNNER_TEMP/mmf/Build/Products/Release/Mac Mouse Fix.app"
+          codesign --verify --deep --strict "$app"
+          ditto -c -k --keepParent "$app" "$RUNNER_TEMP/MacMouseFix.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MacMouseFix
+          path: ${{ runner.temp }}/MacMouseFix.zip
+          retention-days: 5
