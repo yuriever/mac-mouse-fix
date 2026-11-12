@@ -1028,8 +1028,10 @@ static NSString *effectNameForRowDict(NSDictionary * _Nonnull rowDict) {
 //    [triggerCell coolInit];
     
     /// Set string
+    NSString *scope = [RuleScopeMenu summary:rowDict[@"applicationScope"]];
+    if (scope.length) fullTriggerCellString = astringf(@"%@ · %@", fullTriggerCellString, [scope attributed]);
     triggerCell.textField.attributedStringValue = fullTriggerCellString;
-    triggerCell.textField.toolTip = nil;
+    triggerCell.textField.toolTip = RuleScopeMenu.hint;
     
     /// Hook up delete button
     RemapTableButton *deleteButton = (RemapTableButton *)[triggerCell subviewsWithIdentifier:@"deleteButton"][0];

@@ -11,6 +11,7 @@
 
 #import "RemapTableView.h"
 #import "RemapTableCellView.h"
+#import "RemapTableController.h"
 #import "Mac_Mouse_Fix-Swift.h"
 
 @interface RemapTableView ()
@@ -90,40 +91,11 @@
 ///    NSRectFill(clipRect);
 ///}
 
-//- (NSMenu *)menuForEvent:(NSEvent *)event {
-//    
-//    NSPoint clickedPoint = [self convertPoint:event.locationInWindow fromView:nil];
-//    NSInteger clickedRow = [self rowAtPoint:clickedPoint];
-//    
-//    if (clickedRow != -1) {
-//        if ([self.delegate tableView:self shouldSelectRow:clickedRow]) {
-//            /// Select clicked row
-//            NSIndexSet *idx = [NSIndexSet indexSetWithIndex:clickedRow];
-//            [self selectRowIndexes:idx byExtendingSelection:NO];
-//            /// Open menu
-//            return [super menuForEvent:event];
-//        }
-//    } else {
-//        
-//        /// Unselect currently selected row
-//        [self deselectAll:nil];
-//        
-//        /// Create add menu
-//        NSMenuItem *addItem = [[NSMenuItem alloc] init];
-//        addItem.title = @"Add"; //// TODO:  Localize this
-//        addItem.image =  [SFSymbolStrings imageWithSymbolName:@"plus.square"];
-//        addItem.target = self.delegate;
-//        addItem.action = @selector(addButtonAction);
-//        
-//        NSMenu *addMenu = [[NSMenu alloc] init];
-//        [addMenu addItem:addItem];
-//        
-//        /// Return add Menu
-//        return addMenu;
-//    }
-//    
-//    return nil;
-//}
+- (NSMenu *)menuForEvent:(NSEvent *)event {
+    NSInteger row = [self rowAtPoint:[self convertPoint:event.locationInWindow fromView:nil]];
+    RemapTableController *controller = (RemapTableController *)self.delegate;
+    return [controller scopeMenuForRow:row] ?: [super menuForEvent:event];
+}
 
 - (void)mouseDown:(NSEvent *)event {
     

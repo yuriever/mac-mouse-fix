@@ -186,6 +186,7 @@
 		4FA13FC428B3A2E0005C68FC /* TrialNotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA13FBB28B39423005C68FC /* TrialNotificationController.swift */; };
 		4FA1FD7F28A847BF00D1C8EE /* DeletableTableCellView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4FA1FD7E28A847BF00D1C8EE /* DeletableTableCellView.xib */; };
 		4FA1FD8128A85FD100D1C8EE /* RemapTableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA1FD8028A85FD100D1C8EE /* RemapTableElements.swift */; };
+		EA7123CE0010000000000012 /* RuleScopeMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7123CE0010000000000011 /* RuleScopeMenu.swift */; };
 		4FA1FD8328A916B600D1C8EE /* NSShadow+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA1FD8228A916B600D1C8EE /* NSShadow+Extensions.swift */; };
 		4FA2F1262C29A125000C5535 /* NotificationLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FD82DDA260575B100664D6F /* NotificationLabel.m */; };
 		4FA2F13D2C2B0932000C5535 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 4FA2F13C2C2B0932000C5535 /* Localizable.xcstrings */; };
@@ -2405,6 +2406,7 @@
 		4FA13FC028B3A2D3005C68FC /* TrialNotificationWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialNotificationWindow.swift; sourceTree = "<group>"; };
 		4FA1FD7E28A847BF00D1C8EE /* DeletableTableCellView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DeletableTableCellView.xib; sourceTree = "<group>"; };
 		4FA1FD8028A85FD100D1C8EE /* RemapTableElements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemapTableElements.swift; sourceTree = "<group>"; };
+		EA7123CE0010000000000011 /* RuleScopeMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleScopeMenu.swift; sourceTree = "<group>"; };
 		4FA1FD8228A916B600D1C8EE /* NSShadow+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSShadow+Extensions.swift"; sourceTree = "<group>"; };
 		4FA2F1392C2B0932000C5535 /* mul */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = mul; path = mul.lproj/LicenseSheetController.xcstrings; sourceTree = "<group>"; };
 		4FA2F13A2C2B0932000C5535 /* mul */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = mul; path = mul.lproj/Main.xcstrings; sourceTree = "<group>"; };
@@ -7203,6 +7205,7 @@
 				4F37FAD725FDFDC4004C34C4 /* MFScrollView.m */,
 				4FC8A7D428ABDEFD007DB982 /* MFClipView.swift */,
 				4FA1FD8028A85FD100D1C8EE /* RemapTableElements.swift */,
+				EA7123CE0010000000000011 /* RuleScopeMenu.swift */,
 				4F319CB926252A2D004E5F63 /* ButtonGroupRowView.h */,
 				4F319CBA26252A2D004E5F63 /* ButtonGroupRowView.m */,
 				4FA1FD7E28A847BF00D1C8EE /* DeletableTableCellView.xib */,
@@ -8819,6 +8822,7 @@
 				4FA40CFD28A0CCCB00499E53 /* AccelerationBezier.swift in Sources */,
 				4F909D3228A0C3D2009349A2 /* FadeAnimations.swift in Sources */,
 				4FA1FD8128A85FD100D1C8EE /* RemapTableElements.swift in Sources */,
+				EA7123CE0010000000000012 /* RuleScopeMenu.swift in Sources */,
 				4F7AB0552606698A0008055E /* UIStrings.m in Sources */,
 				4FE1A1BA2C56A50100CE3347 /* Logging.m in Sources */,
 				4FD9A7D128BA2A810006DF4B /* SecureStorage.swift in Sources */,

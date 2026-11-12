@@ -31,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// Interation with `ButtonTabController`
 ///
 - (void)reloadAll;
+- (nullable NSMenu *)scopeMenuForRow:(NSInteger)row;
 
 @end
 

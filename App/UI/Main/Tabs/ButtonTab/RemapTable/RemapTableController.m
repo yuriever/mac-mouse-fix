@@ -88,6 +88,31 @@
     self.dataModel = store;
 }
 
+- (NSMenu *)scopeMenuForRow:(NSInteger)index {
+    if (!self.tableView.enabled || index < 0 || index >= (NSInteger)self.groupedDataModel.count) return nil;
+    NSDictionary *row = self.groupedDataModel[index];
+    if ([row isEqual:RemapTableUtility.buttonGroupRowDict]) return nil;
+    return [RuleScopeMenu menuForScope:row[@"applicationScope"] window:self.tableView.window save:^(NSDictionary *scope) {
+        // A sheet can outlive a table reload. Resolve the original trigger again before saving.
+        [self loadDataModelFromConfig];
+        NSMutableArray *rows = self.dataModel.mutableCopy;
+        NSUInteger idx = [rows indexOfObjectPassingTest:^BOOL(NSDictionary *entry, NSUInteger n, BOOL *stop) {
+            return [entry[kMFRemapsKeyTrigger] isEqual:row[kMFRemapsKeyTrigger]]
+                && [entry[kMFRemapsKeyModificationPrecondition] isEqual:row[kMFRemapsKeyModificationPrecondition]];
+        }];
+        if (idx == NSNotFound) return;
+        NSMutableDictionary *updated = [rows[idx] mutableCopy];
+        updated[@"applicationScope"] = scope;
+        rows[idx] = updated;
+        self.dataModel = rows;
+        [self writeDataModelToConfig];
+        // The plist keeps its original order. The grouped table requires button order.
+        [self sortDataModel];
+        [self.tableView reloadData];
+        [(RemapTableView *)self.tableView updateSizeWithAnimation];
+    }];
+}
+
 #pragma mark React to user input
 
 - (IBAction)handleKeystrokeMenuItemSelected:(id)sender {
