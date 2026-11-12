@@ -113,6 +113,7 @@ import ReactiveSwift
     var isLockedDown = false
     
     /// Derived from: HelperState
+    private var inputTapsReady = false
     var userIsActive = false
     
     /// Derived from: General Config
@@ -152,7 +153,8 @@ import ReactiveSwift
         
         /// Force HelperState to init so that it updates `userIsActive`
         ///     Might be better to just directly assign `userIsActive` here instead of this indirect stuff.
-        _ = HelperState.shared
+        inputTapsReady = true
+        helperStateChanged()
         
         /// Not sure this is necessary or useful
         ///     Update [Mar 2025] Still not totally sure. But I don't think it's necessary. The managers of all the state we're setting here should give SwitchMaster a callback when the state is initialized or when it changes. If the managers do that, then this shouldn't be necessary.
@@ -203,6 +205,8 @@ import ReactiveSwift
         /// - On listening to activeDevice
         ///     - This would let us turn off buttonTap / scrollTap for mice that don't support buttons / don't support scrolling. However then we couldn't update the active device when another mouse sends scroll or button input because we wouldn't be listening to that input. So it's better to just listen to all attachedDevices.
         
+        // The activation callback can arrive while the Accessibility prompt is open.
+        guard inputTapsReady else { return }
         let userIsActiveNew = HelperState.shared.userIsActive
         
         if userIsActiveNew != userIsActive {
