@@ -243,6 +243,7 @@ static CGEventRef __nullable eventTapCallBack(CGEventTapProxy proxy, CGEventType
         /// Do main processing on _drag.queue
         
         dispatch_async(_drag.queue, ^{
+            MFDefer ^{ MFCFRelease(eventCopy); };
             
             /// Interrupt
             ///     This handles race condition where _drag.eventTap is disabled right after eventTapCallBack() is called
