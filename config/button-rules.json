@@ -1,0 +1,10 @@
+{
+  "defaults": {
+    "3": "missionControl",
+    "4": "threeFingerDrag",
+    "5": { "keyCode": 101, "flags": 8388864 }
+  },
+  "applications": {
+    "com.kurogame.mingchao": { "3": "passThrough" }
+  }
+}

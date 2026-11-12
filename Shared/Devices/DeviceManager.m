@@ -24,6 +24,7 @@
 
 #import "Scroll.h"
 #import "ButtonInputReceiver.h"
+#import "Remap.h"
 #import "Config.h"
 #import "PointerSpeed.h"
 
@@ -289,6 +290,9 @@ static void handleDeviceRemoval(void *context, IOReturn result, void *sender, IO
         
         /// Remove
         [_attachedDevices removeObject:attachedDevice];
+        if ([ApplicationButtonRules.shared disconnect:attachedDevice.uniqueID.unsignedLongLongValue] && !Remap.addModeIsEnabled) {
+            [Remap reload];
+        }
         
         /// Reset cache
         

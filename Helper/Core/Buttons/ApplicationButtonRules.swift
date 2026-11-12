@@ -110,5 +110,10 @@ private struct FileRules: Decodable {
         return activate(requestedApp)
     }
 
+    @objc func disconnect(_ device: UInt64) -> Bool {
+        pressed = pressed.filter { $0.device != device }
+        return activate(requestedApp)
+    }
+
     @objc func resetPresses() { pressed.removeAll() }
 }

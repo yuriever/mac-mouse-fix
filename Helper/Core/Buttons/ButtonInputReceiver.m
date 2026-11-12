@@ -97,6 +97,7 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
         
         DDLogDebug("ButtonInputReceiver eventTap was disabled by %@", type == kCGEventTapDisabledByTimeout ? @"timeout. Re-enabling." : @"user input.");
         
+        [ApplicationButtonRules.shared resetPresses];
         if (type == kCGEventTapDisabledByTimeout) {
             CGEventTapEnable(_eventTap, true);
         }
@@ -182,7 +183,13 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
     /// Pass to buttonInput processor
     ApplicationButtonRules *rules = ApplicationButtonRules.shared;
     BOOL down = type == kCGEventOtherMouseDown;
-    if (down) [rules press:device.uniqueID.unsignedLongLongValue button:buttonNumber];
+    if (down && rules.enabled) {
+        // Cover a click arriving before the workspace activation notification.
+        if ([rules activate:NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier] && !Remap.addModeIsEnabled) {
+            [Remap reload];
+        }
+        [rules press:device.uniqueID.unsignedLongLongValue button:buttonNumber];
+    }
     MFEventPassThroughEvaluation eval = kMFEventPassThroughApproval;
     if (Remap.addModeIsEnabled || ![rules passesThrough:buttonNumber]) {
         eval = [Buttons handleInputWithDevice:device button:@(buttonNumber) downNotUp:mouseDown event:event];

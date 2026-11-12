@@ -7,13 +7,19 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: macos-26
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           persist-credentials: false
+      - name: Test application button rules
+        run: |
+          xcrun swiftc Helper/Core/Buttons/ApplicationButtonRules.swift Tests/ApplicationButtonRules/main.swift -o "$RUNNER_TEMP/rule-test"
+          "$RUNNER_TEMP/rule-test" config/button-rules.json
       - name: Build app and helper
         shell: bash
         run: |
