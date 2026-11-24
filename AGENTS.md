@@ -4,8 +4,7 @@ Owner's fork of Mac Mouse Fix 3.1.0. It adds an application scope to button rule
 
 ## Branch
 
-* `codex/mmf-app-scope`: the working branch, installed on Owner's Mac.
-* `master`: upstream history.
+* `main` contains the application-scope changes and merges from `upstream/master`.
 
 ## Change
 

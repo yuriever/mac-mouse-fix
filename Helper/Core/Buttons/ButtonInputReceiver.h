@@ -12,7 +12,7 @@
 #import "IOKit/hid/IOHIDManager.h"
 #import "Device.h"
 #import "Constants.h"
-
+#import "MFEventTap.h"
 
 @interface ButtonInputReceiver : NSObject
 
@@ -42,13 +42,11 @@ typedef enum {
 
 + (void)load_Manual;
 
-+ (void)start;
-+ (void)stop;
-+ (BOOL)isRunning;
++ (void) listenToButtons: (MFEventType)buttons;
++ (void)resetScopedPresses;
++ (NSString *) listenedToEventsDescription;
 
-//+ (void)decide;
-
-//+ (void)insertFakeEventWithButton:(MFMouseButtonNumber)button isMouseDown:(BOOL)isMouseDown;
+//+ (void)insertFakeEventWithButton:(MFMouseButtonNumber)button mouseDown:(BOOL)mouseDown;
 
 //+ (void)handleHIDButtonInputFromRelevantDeviceOccured:(Device *)dev button:(NSNumber *)btn;
 //+ (BOOL)allRelevantButtonInputsHaveBeenProcessed;

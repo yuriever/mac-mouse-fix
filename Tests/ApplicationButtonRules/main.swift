@@ -41,4 +41,10 @@ precondition(rules.rows.isEmpty && rules.passesThrough(5))
 rules.press(1, button: 5)
 rules.load([side], frontmost: game)
 precondition(rules.resetPresses() && !rules.enabled && rules.rows == [side])
+
+// Dropping the last scoped rule must update the tap even when the effective rows stay empty.
+rules.load([scoped(side, "only", [])], frontmost: game)
+rules.press(1, button: 5)
+rules.load([], frontmost: game)
+precondition(rules.release(1, button: 5) && !rules.enabled && rules.rows.isEmpty)
 print("Passed rule scopes, native clicks, modifiers, focus changes, reload and disconnect checks.")

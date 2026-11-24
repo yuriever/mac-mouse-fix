@@ -10,7 +10,6 @@
 #import "ButtonInputReceiver.h"
 #import "DeviceManager.h"
 #import "Remap.h"
-#import <AppKit/AppKit.h>
 #import <IOKit/hid/IOHIDManager.h>
 #import "ButtonTriggerGenerator.h"
 #import "Queue.h"
@@ -22,91 +21,51 @@
 
 @implementation ButtonInputReceiver
 
-///
-/// On getting the sending device:
-/// - There is an "old Method" and a "new Method"
-/// - How does old method work? - For the old method, we registered input callbacks on the HIDDevices and put those low level inputs in with co-occuring CGEvents to find which device sent a CGEvent
-/// - Why switch away from old method? - Under Ventura I think the HID callback API broke for some devices. See https://github.com/noah-nuebling/mac-mouse-fix/issues/424. I remember similar bugs in the API in older macOS versions a few years back.
-/// - Some time after moving to the newMethod I deleted the old method. You can still find it in ButtonInputReceiver_old.m and in the the MMF 1 and MMF 2 source. We might have moved away from it under MMF 2 as well to fix Ventura problems, not sure. 
-
-static CFMachPortRef _eventTap;
+#define kListenerID @"ButtonInputReceiver"
 
 + (void)load_Manual {
-    registerInputCallback();
-    [NSWorkspace.sharedWorkspace.notificationCenter addObserverForName:NSWorkspaceDidActivateApplicationNotification
-        object:nil queue:NSOperationQueue.mainQueue usingBlock:^(NSNotification *note) {
-            NSRunningApplication *app = note.userInfo[NSWorkspaceApplicationKey];
-            if ([ApplicationButtonRules.shared activate:app.bundleIdentifier] && !Remap.addModeIsEnabled) {
-                [Remap reload];
-            }
-        }];
-    _buttonParseBlacklist = @[@(1),@(2)]; /// Ignore inputs from left and right mouse buttons
-}
-
-+ (void)start {
-    CGEventTapEnable(_eventTap, true);
-}
-+ (void)stop {
-    CGEventTapEnable(_eventTap, false);
-    if ([ApplicationButtonRules.shared resetPresses] && !Remap.addModeIsEnabled) [Remap reload];
-}
-+ (BOOL)isRunning {
-    /// Only used for debug inspection at the time of writing. Shouldn't need it for anything else.
-    return CGEventTapIsEnabled(_eventTap);
-}
-
-static void registerInputCallback() {
-    
-    ///
-    /// Register event Tap Callback
-    ///
-    
-    /// Declare events of interest
-    /// I think we need to also listen to lmb and rmb here (even though we don't use them for remapping) to keep some stuff in sync with the HID callbacks / `_buttonInputsFromRelevantDevices`. Not sure though. Maybe that was just when we did the event Einschleusung for the old device seizing stuff.
-    ///     Edit: will just see what happens when we turn it off.
-    
-    CGEventMask mask =
-    CGEventMaskBit(kCGEventOtherMouseDown) | CGEventMaskBit(kCGEventOtherMouseUp);
-//    | CGEventMaskBit(kCGEventLeftMouseDown) | CGEventMaskBit(kCGEventLeftMouseUp)
-//    | CGEventMaskBit(kCGEventRightMouseDown) | CGEventMaskBit(kCGEventRightMouseUp);
-
     /// Create tap
-    _eventTap = CGEventTapCreate(kCGHIDEventTap, kCGHeadInsertEventTap, kCGEventTapOptionDefault, mask, eventTapCallback, NULL);
-    
-    /// Get source
-    CFRunLoopSourceRef runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, _eventTap, 0);
-    
-    /// Add to runLoop
-    ///     Running on `GlobalEventTapThread`. Used to run on main. We made this change as a hotfix to the StatusBarItem only reacting to mouseHover if you click and then move mouse outside of the menu and then back in.
-    ///     This might have unforseen consequences. E.g. the stuff we call from the tap must dispatch to mainThread at some points, so this changes the threading model, and might introduce raceConditions
-    ///     Edit: Yes this is causing race conditions. The click and drag gestures get stuck all the time now. Alternative solution: Run on main thread and just don't capture MB1.
-
-    CFRunLoopAddSource(/* GlobalEventTapThread.runLoop */ CFRunLoopGetMain(), runLoopSource, kCFRunLoopDefaultMode);
-    
-    CFRelease(runLoopSource);
+    ///     Probably doesn't do anything at this point [Oct 2026]
+    [MFEventTap registerListener: kListenerID forEvents: 0 callback: eventTapCallback];
+    [MFEventTap enable: true forListener: kListenerID]; /// Always keep enabled. SwitchMaster effectively enables/disables this tap by setting different `MFEventTypes` [Oct 2026]
+    [NSWorkspace.sharedWorkspace.notificationCenter addObserverForName:NSWorkspaceDidActivateApplicationNotification
+        object:nil queue:nil usingBlock:^(NSNotification *note) {
+            mfrun(IOThread.runLoop, ^{
+                if ([ApplicationButtonRules.shared activate:NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier] && !Remap.addModeIsEnabled) {
+                    [Remap reload];
+                }
+            });
+        }];
 }
 
-NSArray *_buttonParseBlacklist; /// Don't send inputs from these buttons to ButtonInputParser
++ (void) listenToButtons: (MFEventType)buttons {
+    assertRunLoop(IOThread.runLoop);
+    [MFEventTap setEvents: buttons forListener: kListenerID];
+    if (!buttons) [self resetScopedPresses];
+}
 
-static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *userInfo) {
-    
-    /// Re-enable on timeout
-    /// Maybe it would be better to do the heavy lifting on a background queue, so this never times out, but this is easier, and it times out quite rarely anyways so this should be fine.
-   
-    if (type == kCGEventTapDisabledByTimeout || type == kCGEventTapDisabledByUserInput) {
-        
-        DDLogDebug("ButtonInputReceiver eventTap was disabled by %@", type == kCGEventTapDisabledByTimeout ? @"timeout. Re-enabling." : @"user input.");
-        
-        if ([ApplicationButtonRules.shared resetPresses] && !Remap.addModeIsEnabled) [Remap reload];
-        if (type == kCGEventTapDisabledByTimeout) {
-            CGEventTapEnable(_eventTap, true);
-        }
-        return event;
++ (void)resetScopedPresses {
+    assertRunLoop(IOThread.runLoop);
+    if ([ApplicationButtonRules.shared resetPresses]) {
+        // SwitchMaster may still be updating the event mask.
+        mfrun(IOThread.runLoop, ^{
+            if (!Remap.addModeIsEnabled) [Remap reload];
+        });
     }
-    
+}
+
++ (NSString *) listenedToEventsDescription {
+    return MFEventTypeDescription([MFEventTap eventsForListener: kListenerID]);
+}
+
+static void eventTapCallback(MFEventType eventType, CGEventRef *eventPtr) {
+
+    assertRunLoop(IOThread.runLoop);
+
+    CGEventRef event = *eventPtr;
+
     /// Debug
-    
-    if (runningPreRelease()) {
+    if (runningDebugMode()) {
         @try {
             NSUInteger buttonNumber = CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber) + 1;
             if (buttonNumber != 1 && buttonNumber != 2) { /// Don't print left and right click cause that'll clog the logs
@@ -130,11 +89,8 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
     ///
     
     /// Get info from cgEvent
-    NSUInteger buttonNumber = CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber) + 1;
+    MFMouseButtonNumber buttonNumber = CGEventGetIntegerValueField(event, kCGMouseEventButtonNumber) + 1;
     BOOL mouseDown = CGEventGetIntegerValueField(event, kCGMouseEventPressure) != 0;
-    
-    /// Filter buttons
-    if ([_buttonParseBlacklist containsObject:@(buttonNumber)]) return event;
     
     /// Debug
     DDLogDebug("Input Receiver - Received event: %@", [NSEvent eventWithCGEvent:event].description);
@@ -148,7 +104,13 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
     ///  - Using reverse engineered knowledge about CGEventFields to get the sender directly from the CGEvent
     ///  - Tested this method under 10.13, 10.14, 10.15 Beta, 13.0, - it works!
     ///  - Performance: Under newMethod, spamming a button in release build with debugger attached had up to 1.6% CPU usage in Activitry Monitor. OldMethod had up to 1.9%, but it went up and down a lot more.
-    
+    ///  Notes from the top of the file (Moved [Sep 2026])
+    ///     On getting the sending device:
+    ///     - There is an "old Method" and a "new Method"
+    ///     - How does old method work? - For the old method, we registered input callbacks on the HIDDevices and put those low level inputs in with co-occuring CGEvents to find which device sent a CGEvent
+    ///     - Why switch away from old method? - Under Ventura I think the HID callback API broke for some devices. See https://github.com/noah-nuebling/mac-mouse-fix/issues/424. I remember similar bugs in the API in older macOS versions a few years back.
+    ///     - Some time after moving to the newMethod I deleted the old method. You can still find it in ButtonInputReceiver_old.m and in the the MMF 1 and MMF 2 source. We might have moved away from it under MMF 2 as well to fix Ventura problems, not sure.
+
     IOHIDDeviceRef iohidDevice = CGEventGetSendingDevice(event);
     Device *device = iohidDevice == NULL ? nil : [DeviceManager attachedDeviceWithIOHIDDevice:iohidDevice];
     
@@ -164,17 +126,17 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
     
     if (iohidDevice == NULL || device == nil) {
 
-#if NO_FILTER
-        device = [Device strangeDevice];
-#else
-        if (iohidDevice == NULL) {
-            DDLogDebug("Input Receiver - Couldn't determine sending device for event. It might have been artificially generated by another app. Letting the event pass through. Event description: %@", [NSEvent eventWithCGEvent:event]);
-        } else if (device == nil) {
-            DDLogDebug("Input Receiver - Sending device is not among attached devices. Letting the event pass through. Event description: %@", [NSEvent eventWithCGEvent:event]);
-        }
-        
-        return event;
-#endif
+        #if NO_FILTER
+            device = [Device strangeDevice];
+        #else
+            if (iohidDevice == NULL) {
+                DDLogDebug("Input Receiver - Couldn't determine sending device for event. It might have been artificially generated by another app. Letting the event pass through. Event description: %@", [NSEvent eventWithCGEvent:event]);
+            } else if (device == nil) {
+                DDLogDebug("Input Receiver - Sending device is not among attached devices. Letting the event pass through. Event description: %@", [NSEvent eventWithCGEvent:event]);
+            }
+
+            return;
+        #endif
     }
     
     /// Log
@@ -182,9 +144,8 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
     
     /// Pass to buttonInput processor
     ApplicationButtonRules *rules = ApplicationButtonRules.shared;
-    BOOL down = type == kCGEventOtherMouseDown;
+    BOOL down = CGEventGetType(event) == kCGEventOtherMouseDown;
     if (down && rules.enabled) {
-        // Cover a click arriving before the workspace activation notification.
         if ([rules activate:NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier] && !Remap.addModeIsEnabled) {
             [Remap reload];
         }
@@ -200,16 +161,15 @@ static CGEventRef eventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEv
     
     /// Set the `RECORDING_MODE` flag when you want to record video demos, so that cleanshot can properly highlight when a button or keyboard key is pressed
     
-#if RECORDING_MODE
-    return event;
-#endif
+    #if RECORDING_MODE
+        return;
+    #endif
     
     /// Let events pass through
     if (eval == kMFEventPassThroughRefusal) {
-        return nil;
+        *eventPtr = NULL;
     } else {
         DDLogDebug("... letting event pass through");
-        return event;
     }
 
 }

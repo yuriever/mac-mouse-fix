@@ -129,7 +129,11 @@ def package(work, donor, identity):
             run("ditto", upstream / folder, contents / folder)
         if name == APP:
             run("ditto", upstream / "Library/LaunchAgents", contents / "Library/LaunchAgents")
+            shutil.copy2(ROOT / "Shared/Config/default_config.plist", contents / "Resources/default_config.plist")
         info = plistlib.loads((upstream / "Info.plist").read_bytes())
+        target_dir = "Helper" if name == HELPER else "App"
+        source_info = plistlib.loads((ROOT / target_dir / "SupportFiles/Info.plist").read_bytes())
+        info["CFBundleVersion"] = source_info["CFBundleVersion"]
         info["LSMinimumSystemVersion"] = MINIMUM_OS
         (contents / "Info.plist").write_bytes(plistlib.dumps(info))
         run("codesign", "--force", "--timestamp=none", "--sign", identity, bundle / relative)

@@ -30,7 +30,7 @@ Thanks for bringing Mac Mouse Fix to people around the globe!
     - [@nghlt](https://github.com/nghlt)
     - [@quocthangit247](https://github.com/quocthangit247)
 - 🇧🇷 Brazilian Portuguese translations by 
-    - **Eduardo Rodrigues**
+    - [@iedurodrigues](https://github.com/iedurodrigues)
     - [@denini08](https://github.com/denini08)
 - 🇫🇷 French translations by 
     - [@DimitriDR](https://github.com/DimitriDR)
@@ -50,6 +50,7 @@ Thanks for bringing Mac Mouse Fix to people around the globe!
     - [@mei28](https://github.com/mei28)
 - 🇺🇦 Ukrainian translations by [@denysocheck](https://github.com/denysocheck)
 - 🇳🇴 Norwegian Bokmål translations by [@Bertil78](https://github.com/Bertil78)
+- 🇮🇹 Italian translations by [@Lombae](https://github.com/Lombae)
 
 ```
 comment:

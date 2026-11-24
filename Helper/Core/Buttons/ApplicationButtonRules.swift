@@ -1,6 +1,6 @@
 import Foundation
 
-/// Kept on the button event tap's main run loop. A change of focus or configuration
+/// Kept on the helper's I/O run loop. A change of focus or configuration
 /// takes effect after the last button-up, so an application receives a complete click.
 @objc final class ApplicationButtonRules: NSObject {
     @objc static let shared = ApplicationButtonRules()
@@ -32,6 +32,7 @@ import Foundation
         guard pending, pressed.isEmpty else { return false }
         pending = false
         let previousRows = rows
+        let wasEnabled = enabled
         enabled = configured.contains { $0["applicationScope"] != nil }
         rows = configured.filter { row in
             guard let scope = row["applicationScope"] else { return true }
@@ -45,7 +46,7 @@ import Foundation
             }
         }
         nativeButtons = enabled ? buttons(in: configured).subtracting(buttons(in: rows)) : []
-        return previousRows != rows
+        return previousRows != rows || wasEnabled != enabled
     }
 
     private func buttons(in rows: [NSDictionary]) -> Set<Int> {

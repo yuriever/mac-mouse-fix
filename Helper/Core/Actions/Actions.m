@@ -24,10 +24,15 @@
 #import "SymbolicHotKeys.h"
 #import <Carbon/Carbon.h>
 
+#import "Threads.h"
+
+#import "MFEventTap.h"
+
 @implementation Actions
 
 + (void)executeActionArray:(NSArray *)actionArray phase:(MFActionPhase)phase {
-    
+    assertRunLoop(IOThread.runLoop);
+
     DDLogDebug("Executing action array: %@, phase: %@", actionArray, @(phase));
     
     if (phase == kMFActionPhaseEnd) {
@@ -59,11 +64,11 @@
             ///             Solution Ideas: - Send at different eventTap - User feedback ala Swish - Simulate navigationSwipes where possible - Some other hacks to keep macOS from diverting the events.
             ///
             
-            /// Dispatch to mainThread
+            /// Defer to mainThread
             ///     [Aug 2025] Run on the mainThread since `MFEmulateNSMenuItemRemapping()` uses TIS API stuff which wants to run on the mainThread. (And this method is called by Buttons.swift which seems to call on the mainThread for some triggers (observed: .release), but calls on `com.nuebling.mac-mouse-fix.buttons` queue for other triggers (observed: .levelExpired))
             ///         Idea: Perhaps we could optimize by only dispatching to mainThread if we really end up calling TIS APIs.
-            dispatch_async(dispatch_get_main_queue(), ^{
-            
+            mfrun(CFRunLoopGetMain(), ^{
+
                 #define fail() ({ assert(false); goto endof_universalBackForward; })       /** [Aug 2025] We'll catch the failures during development, so simple is fine */
                 {
                     NSString *dirString = actionDict[kMFActionDictKeyGenericVariant];
@@ -189,8 +194,6 @@ static void postSystemDefinedEvent(MFSystemDefinedEventType type, NSEventModifie
     /// The timestamps, and location, and even the keyUp event seem to be unnecessary. Just trying stuff to try and fix weird bug where music is louder for a few seconds after starting it with a systemDefinedEvent.
     ///     Edit: The bug where the music is too loud for a few seconds also happens when using the keyboard, so the issue is not on our end.
     
-    CGEventTapLocation tapLoc = kCGSessionEventTap;
-    
     NSPoint loc = NSEvent.mouseLocation;
     
     NSInteger data = 0;
@@ -204,14 +207,14 @@ static void postSystemDefinedEvent(MFSystemDefinedEventType type, NSEventModifie
     
     NSTimeInterval ts = [ModificationUtility nsTimeStamp];
     NSEvent *e = [NSEvent otherEventWithType:14 location:loc modifierFlags:modifierFlags timestamp:ts windowNumber:-1 context:nil subtype:8 data1:downData data2:-1];
-    
-    CGEventPost(tapLoc, e.CGEvent); /// `.CGEvent` "Returns an autoreleased CGEvent" -> Make sure there's an autoreleasepool when calling this!
+
+    [MFEventTap postCGEvent: e.CGEvent]; /// `.CGEvent` "Returns an autoreleased CGEvent" -> Make sure there's an autoreleasepool when calling this!
     
     /// Post key up
     ts = [ModificationUtility nsTimeStamp];
     e = [NSEvent otherEventWithType:14 location:loc modifierFlags:modifierFlags timestamp:ts windowNumber:-1 context:nil subtype:8 data1:upData data2:-1];
-    
-    CGEventPost(tapLoc, e.CGEvent);
+
+    [MFEventTap postCGEvent: e.CGEvent];
 }
 
 #pragma mark - Keyboard shortcuts
@@ -219,8 +222,6 @@ static void postSystemDefinedEvent(MFSystemDefinedEventType type, NSEventModifie
 static void postKeyboardShortcut(CGKeyCode keyCode, CGSModifierFlags modifierFlags) {
     
     DDLogDebug("postKeyboardShortcut: Posting shortcut with %@", vardesc(keyCode, modifierFlags));
-    
-    CGEventTapLocation tapLoc = kCGSessionEventTap;
 
     /// Create key events
     CGEventRef keyUp = CGEventCreateKeyboardEvent(NULL, keyCode, false);
@@ -241,14 +242,14 @@ static void postKeyboardShortcut(CGKeyCode keyCode, CGSModifierFlags modifierFla
     /// Create modifier restore event
     ///  (Restoring original modifier state the way `postKeyboardEventsForSymbolicHotkey()` does leads to issues with triggering Spotlight)
     ///      (Sometimes triggered Siri instead)
-//    CGEventFlags originalModifierFlags = CGEventGetFlags(CGEventCreate(NULL));
+    //CGEventFlags originalModifierFlags = CGEventGetFlags(CGEventCreate(NULL));
     CGEventRef modEvent = CGEventCreate(NULL);
-//    CGEventSetFlags(modEvent, originalModifierFlags);
-    
+    //CGEventSetFlags(modEvent, originalModifierFlags);
+
     /// Send key events
-    CGEventPost(tapLoc, keyDown);
-    CGEventPost(tapLoc, keyUp);
-    CGEventPost(tapLoc, modEvent);
+    [MFEventTap postCGEvent: keyDown];
+    [MFEventTap postCGEvent: keyUp];
+    [MFEventTap postCGEvent: modEvent];
     
     CFRelease(keyDown);
     CFRelease(keyUp);
